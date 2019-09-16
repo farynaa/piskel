@@ -30,7 +30,15 @@ class Layers extends React.Component {
                 <p>LAYERS</p>
                 <button onClick={this.props.addCanvasLayer} >ADD LAYER</button>
                 <div style={{ display: "flex" }}>
-                    {this.props.layers.map((layer, i) => <CanvasLayer key={i} size={this.props.size} data={layer} />)}
+                    {
+                        this.props.layers.map((layer, i) => (
+                            <div className="layer-box">
+                                <CanvasLayer key={i} size={this.props.size} data={layer} />
+                                <button onClick={() => this.props.removeCanvasLayer(i)}>remove layer</button>
+                            </div>
+                            )
+                        )
+                    }
                 </div>
             </div>
         )
@@ -86,15 +94,41 @@ class Piskel extends React.Component {
         });
     }
 
+    componentDidUpdate() {
+        console.log("DID UPDATE");
+        const canvas = this.canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        let img = new Image;
+        img.src = this.state.layers.slice(-1)[0];
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0);
+        }
+        console.log('DID REDRAW');
+        //copyCanvas(canvas.getContext("2d"), this.state.layers.slice(-1)[0]);
+    }
+
     addCanvasLayer = () => {
         const x = Math.floor(Math.random() * this.state.canvasSize);
         const y = Math.floor(Math.random() * this.state.canvasSize);
-        this.canvasRef.current.getContext("2d").fillRect(x, y, 150, 150);
+        this.canvasRef.current.getContext("2d").fillRect(x, y, 50, 50);
         let layers = this.state.layers;
         layers.push(this.canvasRef.current.toDataURL());
         this.setState({
             layers: layers
         })
+    }
+
+    removeCanvasLayer = (i) => {
+        console.log(i, this.state.layers.length)
+        if (i < this.state.layers.length && i != 0) {
+            console.log("true")
+            console.log(this.state.layers.length)
+            let layers = this.state.layers;
+            layers.splice(i, 1);
+            this.setState({
+                layers: layers
+            })
+        }
     }
 
     render() {
@@ -104,7 +138,9 @@ class Piskel extends React.Component {
                     <p>MAIN</p>
                     <canvas ref={this.canvasRef} width={this.state.canvasSize} style={{ ...borderStyle, display: "" }} height={this.state.canvasSize} />
                 </div>
-                <Layers addCanvasLayer={this.addCanvasLayer} size={this.state.canvasSize} layers={this.state.layers} />
+                <div className="layers">
+                    <Layers removeCanvasLayer={this.removeCanvasLayer} addCanvasLayer={this.addCanvasLayer} size={this.state.canvasSize} layers={this.state.layers} />
+                </div>
             </div>
         )
     }
