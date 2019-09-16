@@ -32,8 +32,8 @@ class Layers extends React.Component {
                 <div style={{ display: "flex" }}>
                     {
                         this.props.layers.map((layer, i) => (
-                            <div className="layer-box">
-                                <CanvasLayer key={i} size={this.props.size} data={layer} />
+                            <div key={i} className="layer-box">
+                                <CanvasLayer size={this.props.size} data={layer} />
                                 <button onClick={() => this.props.removeCanvasLayer(i)}>remove layer</button>
                             </div>
                             )
@@ -55,9 +55,11 @@ class CanvasLayer extends React.Component {
 
     componentDidMount() {
         copyCanvas(this.canvasRef.current.getContext("2d"), this.props.data);
+
     }
 
     componentDidUpdate() {
+        this.canvasRef.current.getContext("2d").clearRect(0, 0, this.props.size, this.props.size);
         copyCanvas(this.canvasRef.current.getContext("2d"), this.props.data);
     }
 
@@ -96,13 +98,8 @@ class Piskel extends React.Component {
 
     componentDidUpdate() {
         console.log("DID UPDATE");
-        const canvas = this.canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        let img = new Image;
-        img.src = this.state.layers.slice(-1)[0];
-        img.onload = () => {
-            ctx.drawImage(img, 0, 0);
-        }
+        this.canvasRef.current.getContext("2d").clearRect(0, 0, this.state.canvasSize, this.state.canvasSize);
+        copyCanvas(this.canvasRef.current.getContext("2d"), this.state.layers.slice(-1)[0]);
         console.log('DID REDRAW');
         //copyCanvas(canvas.getContext("2d"), this.state.layers.slice(-1)[0]);
     }
