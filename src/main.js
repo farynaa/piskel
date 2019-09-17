@@ -28,7 +28,7 @@ class Animation extends React.Component {
             counter: 0,
             animated: false,
             intervalId: -1,
-            interval: 100,
+            interval: 2000,
         }
     }
 
@@ -81,6 +81,8 @@ class Animation extends React.Component {
 
     render() {
         console.log('animation render');
+        let currentCounter = this.state.counter;
+        if (currentCounter >= this.props.layers.length - 1) currentCounter = 0;
         //const backgroundImage = {this.}
         return (
             <div className="animation">
@@ -90,7 +92,7 @@ class Animation extends React.Component {
                     <p><button onClick={this.toogleAnimation}>toggle animation</button></p>
                 </div>
                 <div>
-                    <div style={{border: "1px solid black", backgroundSize: "contain", width: 128, height: 128, backgroundImage: `url(${this.props.layers[this.state.counter]})`}}></div>
+                    <div style={{border: "1px solid black", backgroundSize: "contain", width: 128, height: 128, backgroundImage: `url(${this.props.layers[currentCounter]})`}}></div>
                 </div>
             </div>
         )
