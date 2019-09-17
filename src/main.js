@@ -1,4 +1,6 @@
 import React from "react";
+import Layers from "./components/layers";
+import CanvasLayer from "./components/canvaslayer";
 
 const borderStyle = {
     border: "1px solid black"
@@ -10,7 +12,7 @@ const smallCanvas = {
 }
 
 const copyCanvas = (destCtx, data) => {
-    const img = new Image;
+    const img = new Image();
     img.src = data;
     img.onload = () => {
         destCtx.drawImage(img, 0, 0);
@@ -18,61 +20,86 @@ const copyCanvas = (destCtx, data) => {
 }
 
 
-class Layers extends React.Component {
+class Animation extends React.Component {
     constructor(props) {
         super(props);
+        this.canvasRef = React.createRef();
+        this.state = {
+            counter: 0,
+            animated: false,
+            intervalId: -1,
+            interval: 100,
+        }
+    }
+
+    componentDidMount() {
+        if (this.state.animated) {
+            this.startInterval();
+        }
+        console.log("animation mounted");
 
     }
 
+    componentDidUpdate() {
+        console.log("animation updated");
+    }
+
+    startInterval = () => {
+        clearInterval(this.state.intervalId);
+        const intervalId = setInterval( () => {
+            let counter = this.state.counter;
+            if (counter + 1 >= this.props.layers.length) {
+                counter = 0;
+            }
+            else {
+                counter += 1;
+            }
+            this.setState({
+                counter: counter
+            })
+        }, this.state.interval)
+        this.setState({
+            intervalId: intervalId
+        })
+    }
+
+    stopInterval = () => {
+        clearInterval(this.state.intervalId);
+    }
+
+    toogleAnimation = () => {
+        if (this.state.animated) {
+            this.stopInterval();
+        }
+        else {
+            this.startInterval();
+        }
+        this.setState({
+            animated: !this.state.animated
+        })
+    }
+
     render() {
+        console.log('animation render');
+        //const backgroundImage = {this.}
         return (
-            <div className="layers">
-                <p>LAYERS</p>
-                <button onClick={this.props.addCanvasLayer} >ADD LAYER</button>
-                <div style={{ display: "flex" }}>
-                    {
-                        this.props.layers.map((layer, i) => (
-                            <div key={i} className="layer-box">
-                                <CanvasLayer size={this.props.size} data={layer} />
-                                <button onClick={() => this.props.removeCanvasLayer(i)}>remove layer</button>
-                            </div>
-                            )
-                        )
-                    }
+            <div className="animation">
+                <div>
+                    <p onClick={this.stopInterval}>ANIMATON</p>
+                    {this.state.counter} + {this.state.animated.toString()} + {this.state.intervalId} + {this.props.layers.length}
+                    <p><button onClick={this.toogleAnimation}>toggle animation</button></p>
+                </div>
+                <div>
+                    <div style={{border: "1px solid black", backgroundSize: "contain", width: 128, height: 128, backgroundImage: `url(${this.props.layers[this.state.counter]})`}}></div>
                 </div>
             </div>
         )
     }
 }
+//<CanvasLayer size={this.props.size} data={this.props.layers[this.state.counter]}/>
 
+//<canvas width={this.props.size} height={this.props.size} ref={this.canvasRef} style={{ ...borderStyle, ...smallCanvas }}></canvas>
 
-class CanvasLayer extends React.Component {
-    constructor(props) {
-        super(props);
-        this.canvasRef = React.createRef();
-
-    }
-
-    componentDidMount() {
-        copyCanvas(this.canvasRef.current.getContext("2d"), this.props.data);
-
-    }
-
-    componentDidUpdate() {
-        this.canvasRef.current.getContext("2d").clearRect(0, 0, this.props.size, this.props.size);
-        copyCanvas(this.canvasRef.current.getContext("2d"), this.props.data);
-    }
-
-    render() {
-        return (
-            <div className="canvas-layer">
-                <p>Canvas Layer</p>
-                <p>{this.props.height}</p>
-                <canvas width={this.props.size} height={this.props.size} ref={this.canvasRef} style={{ ...borderStyle, ...smallCanvas }}></canvas>
-            </div>
-        )
-    }
-}
 
 
 class Piskel extends React.Component {
@@ -97,10 +124,8 @@ class Piskel extends React.Component {
     }
 
     componentDidUpdate() {
-        console.log("DID UPDATE");
         this.canvasRef.current.getContext("2d").clearRect(0, 0, this.state.canvasSize, this.state.canvasSize);
         copyCanvas(this.canvasRef.current.getContext("2d"), this.state.layers.slice(-1)[0]);
-        console.log('DID REDRAW');
         //copyCanvas(canvas.getContext("2d"), this.state.layers.slice(-1)[0]);
     }
 
@@ -117,7 +142,7 @@ class Piskel extends React.Component {
 
     removeCanvasLayer = (i) => {
         console.log(i, this.state.layers.length)
-        if (i < this.state.layers.length && i != 0) {
+        if (i < this.state.layers.length && this.state.layers.length > 1) {
             console.log("true")
             console.log(this.state.layers.length)
             let layers = this.state.layers;
@@ -138,6 +163,7 @@ class Piskel extends React.Component {
                 <div className="layers">
                     <Layers removeCanvasLayer={this.removeCanvasLayer} addCanvasLayer={this.addCanvasLayer} size={this.state.canvasSize} layers={this.state.layers} />
                 </div>
+                <Animation size={this.state.canvasSize} layers={this.state.layers} width={this.state.canvasSize} height={this.state.canvasSize}/>
             </div>
         )
     }
